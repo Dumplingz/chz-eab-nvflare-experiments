@@ -22,6 +22,8 @@ from torch.optim import SGD
 from torch.utils.data.dataloader import DataLoader
 from torchvision.datasets import CIFAR10, FashionMNIST
 from torchvision.transforms import Compose, Normalize, ToTensor
+import csv
+import time
 
 from nvflare.apis.dxo import DXO, DataKind, MetaKey, from_shareable
 from nvflare.apis.executor import Executor
@@ -147,14 +149,33 @@ class MnistTrainer(Executor):
         return outgoing_dxo.to_shareable()
 
     def _local_train(self, fl_ctx, weights, abort_signal):
+        torch.set_num_threads(1)
         # Set the model weights
         self.model.load_state_dict(state_dict=weights)
 
+        batch_size = 64
+
+        train_dataset = self._train_dataset
+        train_dataset_size = len(train_dataset)
+        train_dataset_subset = train_dataset_size // 3
+        identity_name = fl_ctx.get_identity_name()
+        if identity_name == "site-1":
+            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset))
+            self.log_info(fl_ctx, f"{identity_name} training on first {len(train_dataset_subset)} samples.")
+        elif identity_name == "site-2":
+            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset, train_dataset_subset * 2))
+            self.log_info(fl_ctx, f"{identity_name} training on second {len(train_dataset_subset)} samples.")
+        else:
+            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset * 2, train_dataset_subset * 3))
+            self.log_info(fl_ctx, f"{identity_name} training on last {len(train_dataset_subset)} samples.")
+
+        train_dataset_subset_loader = DataLoader(train_dataset_subset, batch_size=batch_size, shuffle=True)
         # Basic training
         self.model.train()
         for epoch in range(self._epochs):
             running_loss = 0.0
-            for i, batch in enumerate(self._train_loader):
+            epoch_start = time.perf_counter()
+            for i, batch in enumerate(train_dataset_subset_loader):
                 if abort_signal.triggered:
                     # If abort_signal is triggered, we simply return.
                     # The outside function will check it again and decide steps to take.
@@ -174,6 +195,13 @@ class MnistTrainer(Executor):
                         fl_ctx, f"Epoch: {epoch}/{self._epochs}, Iteration: {i}, " f"Loss: {running_loss/3000}"
                     )
                     running_loss = 0.0
+            epoch_end = time.perf_counter()
+            epoch_duration = epoch_end - epoch_start
+            with open("datasize_mnist_nn.csv", "a") as fp:
+                wr = csv.writer(fp, dialect='excel')
+                # epoch_duration, epoch, batch_size, data_size, accuracy, test_duration
+                wr.writerow([epoch_duration, epoch, batch_size, train_dataset_size])
+
 
     def _save_local_model(self, fl_ctx: FLContext):
         run_dir = fl_ctx.get_engine().get_workspace().get_run_dir(fl_ctx.get_prop(ReservedKey.RUN_NUM))
