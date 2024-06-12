@@ -17,6 +17,8 @@ from simple_network import CifarNet, MnistNet
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10, FashionMNIST
 from torchvision.transforms import Compose, Normalize, ToTensor
+import time
+import csv
 
 from nvflare.apis.dxo import DXO, DataKind, from_shareable
 from nvflare.apis.executor import Executor
@@ -88,6 +90,7 @@ class MnistValidator(Executor):
             return make_reply(ReturnCode.TASK_UNKNOWN)
 
     def _validate(self, weights, abort_signal):
+        epoch_start = time.perf_counter()
         self.model.load_state_dict(weights)
 
         self.model.eval()
@@ -108,5 +111,12 @@ class MnistValidator(Executor):
                 total += images.size()[0]
 
             metric = correct / float(total)
+
+        epoch_end = time.perf_counter()
+        epoch_duration = epoch_end - epoch_start
+        with open("datasize_mnist_nn.csv", "a") as fp:
+            wr = csv.writer(fp, dialect='excel')
+            # accuracy, test_duration
+            wr.writerow([metric, epoch_duration])
 
         return metric
