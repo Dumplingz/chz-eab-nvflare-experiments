@@ -35,6 +35,7 @@ from nvflare.app_common.abstract.model import make_model_learnable, model_learna
 from nvflare.app_common.app_constant import AppConstants
 from nvflare.app_opt.pt.model_persistence_format_manager import PTModelPersistenceFormatManager
 
+EPOCH_NUM = 0
 
 class MnistTrainer(Executor):
     def __init__(
@@ -82,7 +83,9 @@ class MnistTrainer(Executor):
                 # Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
         )
-        self._train_dataset = FashionMNIST(root=data_path, transform=transforms, download=True, train=True)
+        raw_train_dataset = FashionMNIST(root=data_path, transform=transforms, download=True, train=True)
+        self._train_dataset = torch.utils.data.Subset(raw_train_dataset, range(60000))
+
         self._train_loader = DataLoader(self._train_dataset, batch_size=4, shuffle=True)
         self._n_iterations = len(self._train_loader)
 
@@ -200,7 +203,7 @@ class MnistTrainer(Executor):
             with open("datasize_mnist_nn.csv", "a") as fp:
                 wr = csv.writer(fp, dialect='excel')
                 # epoch_duration, epoch, batch_size, data_size, accuracy, test_duration
-                wr.writerow([epoch_duration, epoch, batch_size, train_dataset_size])
+                wr.writerow([epoch_duration, EPOCH_NUM, batch_size, train_dataset_size])
 
 
     def _save_local_model(self, fl_ctx: FLContext):

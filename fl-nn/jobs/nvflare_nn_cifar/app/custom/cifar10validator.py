@@ -13,10 +13,12 @@
 # limitations under the License.
 
 import torch
-from simple_network import CifarNet, MnistNet
+from simple_network import SimpleNetwork
 from torch.utils.data import DataLoader
-from torchvision.datasets import CIFAR10, FashionMNIST
+from torchvision.datasets import CIFAR10
 from torchvision.transforms import Compose, Normalize, ToTensor
+import time
+import csv
 
 from nvflare.apis.dxo import DXO, DataKind, from_shareable
 from nvflare.apis.executor import Executor
@@ -27,14 +29,14 @@ from nvflare.apis.signal import Signal
 from nvflare.app_common.app_constant import AppConstants
 
 
-class MnistValidator(Executor):
+class Cifar10Validator(Executor):
     def __init__(self, data_path="~/data", validate_task_name=AppConstants.TASK_VALIDATION):
         super().__init__()
 
         self._validate_task_name = validate_task_name
 
         # Setup the model
-        self.model = MnistNet()
+        self.model = SimpleNetwork()
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model.to(self.device)
 
@@ -42,10 +44,10 @@ class MnistValidator(Executor):
         transforms = Compose(
             [
                 ToTensor(),
-                # Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
         )
-        test_data = FashionMNIST(root=data_path, train=False, transform=transforms)
+        test_data = CIFAR10(root=data_path, train=False, transform=transforms)
         self._test_loader = DataLoader(test_data, batch_size=4, shuffle=False)
 
     def execute(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
@@ -88,6 +90,7 @@ class MnistValidator(Executor):
             return make_reply(ReturnCode.TASK_UNKNOWN)
 
     def _validate(self, weights, abort_signal):
+        epoch_start = time.perf_counter()
         self.model.load_state_dict(weights)
 
         self.model.eval()
@@ -102,11 +105,18 @@ class MnistValidator(Executor):
                 images, labels = images.to(self.device), labels.to(self.device)
                 output = self.model(images)
 
-                # _, pred_label = torch.max(output, 1)
-                correct += (output.argmax(1) == labels).type(torch.float).sum().item()
-                # correct += (pred_label == labels).sum().item()
+                _, pred_label = torch.max(output, 1)
+
+                correct += (pred_label == labels).sum().item()
                 total += images.size()[0]
 
             metric = correct / float(total)
+
+        epoch_end = time.perf_counter()
+        epoch_duration = epoch_end - epoch_start
+        with open("datasize_cifar_nn.csv", "a") as fp:
+            wr = csv.writer(fp, dialect='excel')
+            # accuracy, test_duration
+            wr.writerow([metric, epoch_duration])
 
         return metric
