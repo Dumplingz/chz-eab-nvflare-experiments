@@ -84,7 +84,7 @@ class Cifar10Trainer(Executor):
             ]
         )
         raw_train_dataset = CIFAR10(root=data_path, transform=transforms, download=True, train=True)
-        self._train_dataset = torch.utils.data.Subset(raw_train_dataset, range(50000))
+        self._train_dataset = torch.utils.data.Subset(raw_train_dataset, range(60000))
         self._train_loader = DataLoader(self._train_dataset, batch_size=4, shuffle=True)
         self._n_iterations = len(self._train_loader)
 
@@ -156,7 +156,7 @@ class Cifar10Trainer(Executor):
         # Set the model weights
         self.model.load_state_dict(state_dict=weights)
 
-        batch_size = 64
+        batch_size = 4
 
         train_dataset = self._train_dataset
         train_dataset_size = len(train_dataset)
