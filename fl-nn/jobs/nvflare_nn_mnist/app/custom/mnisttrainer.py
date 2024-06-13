@@ -38,7 +38,7 @@ from nvflare.app_opt.pt.model_persistence_format_manager import PTModelPersisten
 EPOCH_NUM = 0
 SUBSET_SIZE = 60000
 BATCH_SIZE = 64
-NUM_PARTIES = 2
+NUM_PARTIES = 4
 
 
 class MnistTrainer(Executor):
@@ -173,8 +173,11 @@ class MnistTrainer(Executor):
         elif identity_name == "site-2":
             train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset, train_dataset_subset * 2))
             self.log_info(fl_ctx, f"{identity_name} training on second {len(train_dataset_subset)} samples.")
-        else:
+        elif identity_name == "site-3":
             train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset * 2, train_dataset_subset * 3))
+            self.log_info(fl_ctx, f"{identity_name} training on second {len(train_dataset_subset)} samples.")
+        else:
+            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset * 3, train_dataset_subset * 4))
             self.log_info(fl_ctx, f"{identity_name} training on last {len(train_dataset_subset)} samples.")
 
         train_dataset_subset_loader = DataLoader(train_dataset_subset, batch_size=batch_size, shuffle=True)
