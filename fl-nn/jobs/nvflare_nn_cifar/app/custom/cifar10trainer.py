@@ -36,6 +36,9 @@ from nvflare.app_common.app_constant import AppConstants
 from nvflare.app_opt.pt.model_persistence_format_manager import PTModelPersistenceFormatManager
 
 EPOCH_NUM = 0
+SUBSET_SIZE = 7500
+BATCH_SIZE = 4
+NUM_PARTIES = 2
 
 class Cifar10Trainer(Executor):
     def __init__(
@@ -84,7 +87,7 @@ class Cifar10Trainer(Executor):
             ]
         )
         raw_train_dataset = CIFAR10(root=data_path, transform=transforms, download=True, train=True)
-        self._train_dataset = torch.utils.data.Subset(raw_train_dataset, range(50000))
+        self._train_dataset = torch.utils.data.Subset(raw_train_dataset, range(SUBSET_SIZE))
         self._train_loader = DataLoader(self._train_dataset, batch_size=4, shuffle=True)
         self._n_iterations = len(self._train_loader)
 
@@ -156,11 +159,12 @@ class Cifar10Trainer(Executor):
         # Set the model weights
         self.model.load_state_dict(state_dict=weights)
 
-        batch_size = 4
+        batch_size = BATCH_SIZE
+        num_parties = NUM_PARTIES
 
         train_dataset = self._train_dataset
         train_dataset_size = len(train_dataset)
-        train_dataset_subset = train_dataset_size // 3
+        train_dataset_subset = train_dataset_size // num_parties
         identity_name = fl_ctx.get_identity_name()
         if identity_name == "site-1":
             train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset))
