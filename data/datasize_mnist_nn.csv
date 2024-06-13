@@ -1,3 +1,4 @@
+epoch_duration,epoch,batch_size,data_size,accuracy,test_duration
 0.4670241190001434,0,64,7500
 0.4749654240001746,0,64,7500
 0.46532454899988807,0,64,7500
