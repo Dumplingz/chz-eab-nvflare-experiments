@@ -78,7 +78,7 @@ class MnistTrainer(Executor):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.loss = nn.CrossEntropyLoss()
-        self.optimizer = SGD(self.model.parameters(), lr=lr, momentum=0.9)
+        self.optimizer = SGD(self.model.parameters(), lr=lr)
 
         # Create Cifar10 dataset for training.
         transforms = Compose(
