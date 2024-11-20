@@ -38,7 +38,7 @@ from nvflare.app_opt.pt.model_persistence_format_manager import PTModelPersisten
 EPOCH_NUM = 0
 SUBSET_SIZE = 7500
 BATCH_SIZE = 4
-NUM_PARTIES = 2
+NUM_PARTIES = 4
 
 class Cifar10Trainer(Executor):
     def __init__(
@@ -77,7 +77,7 @@ class Cifar10Trainer(Executor):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.loss = nn.CrossEntropyLoss()
-        self.optimizer = SGD(self.model.parameters(), lr=lr
+        self.optimizer = SGD(self.model.parameters(), lr=lr)
 
         # Create Cifar10 dataset for training.
         transforms = Compose(
