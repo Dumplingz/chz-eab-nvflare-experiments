@@ -3,8 +3,8 @@ import pandas as pd
 
 if __name__ == '__main__':
     # Create experiments directory
-    os.makedirs('experiments/mnist', exist_ok=True)
-    os.makedirs('experiments/cifar', exist_ok=True)
+    os.makedirs('fl-nn/experiments/mnist', exist_ok=True)
+    os.makedirs('fl-nn/experiments/cifar', exist_ok=True)
     
     
     
