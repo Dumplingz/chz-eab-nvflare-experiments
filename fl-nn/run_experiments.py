@@ -100,6 +100,8 @@ if __name__ == '__main__':
             df = pd.read_csv(file_path, header=None)
             df['site'] = site
             combined_df = pd.concat([combined_df, df], ignore_index=True)
+            # remove for next trials
+            os.remove(file_path)
     combined_df.to_csv(f'{trial_dir}/{file}', index=False, header=False)
     print("Job done running. Change the params for a new experiment!")
         # print(list_jobs_output)
