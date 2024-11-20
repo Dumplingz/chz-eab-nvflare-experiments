@@ -1,3 +1,5 @@
 NVFlare
 nvflare_venv
 *.crt
+
+.python-version
