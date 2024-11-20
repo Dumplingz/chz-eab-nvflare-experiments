@@ -36,9 +36,9 @@ from nvflare.app_common.app_constant import AppConstants
 from nvflare.app_opt.pt.model_persistence_format_manager import PTModelPersistenceFormatManager
 
 EPOCH_NUM = 0
-SUBSET_SIZE = 60000
+SUBSET_SIZE = 7500
 BATCH_SIZE = 64
-NUM_PARTIES = 4
+NUM_PARTIES = 2
 
 
 class MnistTrainer(Executor):

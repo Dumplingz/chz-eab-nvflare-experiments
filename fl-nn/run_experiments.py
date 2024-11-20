@@ -3,6 +3,7 @@ import sys
 import csv
 from nvflare.fuel.flare_api.flare_api import new_secure_session, Session
 import json
+import pandas as pd
 
 def format_json( data: dict): 
     print(json.dumps(data, sort_keys=True, indent=4,separators=(',', ': ')))
@@ -27,13 +28,20 @@ if __name__ == '__main__':
 
     model = str(sys.argv[2])
     
+    trial = str(sys.argv[3])
+    
     if model != "cifar" and model != "mnist":
         print(f"Model must be cifar or mnist. Got {model}")
         exit(1)
 
+    if trial is None:
+        print("Trial details must be provided")
+        exit(1)
+        
+    trial_dir = f"experiments/{model}/{trial}"
     
     # create experiment dir
-    os.makedirs('experiments', exist_ok=True)
+    os.makedirs(trial_dir, exist_ok=True)
     
     username = "admin@nvidia.com"
     admin_user_dir = os.path.join("/tmp/nvflare/poc/example_project/prod_00", username)
@@ -72,13 +80,27 @@ if __name__ == '__main__':
                 seconds = int(duration_parts[0]) * 3600 + int(duration_parts[1]) * 60 + float(duration_parts[2])
                 print(f"Duration in seconds: {seconds}")
                 
-                with open(f"experiments/{model}_total_time.csv", "a") as fp:
+                with open(f"{trial_dir}/total_time.csv", "a") as fp:
                     wr = csv.writer(fp, dialect='excel')
                     # epoch_duration, epoch, batch_size, data_size, accuracy, test_duration
                     wr.writerow([seconds, job_id, job["submit_time"]])
 
                 break
     
+    base_dir = "/tmp/nvflare/poc/example_project/prod_00"
+    
+    file = f"datasize_{model}_nn.csv"
+
+    sites = ["site-1", "site-2", "site-3", "site-4"]
+
+    combined_df = pd.DataFrame()
+    for site in sites:
+        file_path = os.path.join(base_dir, site, file)
+        if os.path.exists(file_path):
+            df = pd.read_csv(file_path, header=None)
+            df['site'] = site
+            combined_df = pd.concat([combined_df, df], ignore_index=True)
+    combined_df.to_csv(f'{trial_dir}/{file}', index=False, header=False)
     print("Job done running. Change the params for a new experiment!")
         # print(list_jobs_output)
         # print(format_json(list_jobs_output))
