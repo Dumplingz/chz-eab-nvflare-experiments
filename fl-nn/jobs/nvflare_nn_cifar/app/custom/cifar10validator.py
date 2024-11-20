@@ -114,7 +114,7 @@ class Cifar10Validator(Executor):
 
         epoch_end = time.perf_counter()
         epoch_duration = epoch_end - epoch_start
-        with open("datasize_cifar_nn_validation.csv", "a") as fp:
+        with open("datasize_mnist_nn.csv", "a") as fp:
             wr = csv.writer(fp, dialect='excel')
             # accuracy, test_duration
             wr.writerow([metric, epoch_duration])
