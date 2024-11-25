@@ -1,5 +1,10 @@
 NVFlare
-nvflare_venv
 *.crt
 
+# sig files
+*_sig.json
+
+# Python dev
 .python-version
+nvflare_venv
+venv-nvflare
