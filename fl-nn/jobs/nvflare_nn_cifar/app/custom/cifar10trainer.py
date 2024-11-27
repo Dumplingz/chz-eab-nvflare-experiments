@@ -36,15 +36,15 @@ from nvflare.app_common.app_constant import AppConstants
 from nvflare.app_opt.pt.model_persistence_format_manager import PTModelPersistenceFormatManager
 
 EPOCH_NUM = 0
-SUBSET_SIZE = 7500
+SUBSET_SIZE = 50000
 BATCH_SIZE = 4
-NUM_PARTIES = 4
+NUM_PARTIES = 2
 
 class Cifar10Trainer(Executor):
     def __init__(
         self,
         data_path="~/data",
-        lr=0.01,
+        lr=0.001,
         epochs=5,
         train_task_name=AppConstants.TASK_TRAIN,
         submit_model_task_name=AppConstants.TASK_SUBMIT_MODEL,
@@ -153,6 +153,22 @@ class Cifar10Trainer(Executor):
         )
         return outgoing_dxo.to_shareable()
 
+    # def test(self, dataloader, model, loss_fn):
+    #     size = len(dataloader.dataset)
+    #     num_batches = len(dataloader)
+    #     model.eval()
+    #     test_loss, correct = 0, 0
+    #     with torch.no_grad():
+    #         for X, y in dataloader:
+    #             X, y = X.to(self.device), y.to(self.device)
+    #             pred = model(X)
+    #             test_loss += loss_fn(pred, y).item()
+    #             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+    #     test_loss /= num_batches
+    #     correct /= size
+    #     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    #     return correct
+
     def _local_train(self, fl_ctx, weights, abort_signal):
         torch.set_num_threads(1)
 
@@ -164,16 +180,16 @@ class Cifar10Trainer(Executor):
 
         train_dataset = self._train_dataset
         train_dataset_size = len(train_dataset)
-        train_dataset_subset = train_dataset_size // num_parties
+        train_dataset_subset_size = train_dataset_size // num_parties
         identity_name = fl_ctx.get_identity_name()
         if identity_name == "site-1":
-            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset))
+            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset_size))
             self.log_info(fl_ctx, f"{identity_name} training on first {len(train_dataset_subset)} samples.")
         elif identity_name == "site-2":
-            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset, train_dataset_subset * 2))
+            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset_size, train_dataset_subset_size * 2))
             self.log_info(fl_ctx, f"{identity_name} training on second {len(train_dataset_subset)} samples.")
         else:
-            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset * 2, train_dataset_subset * 3))
+            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset_size * 2, train_dataset_subset_size * 3))
             self.log_info(fl_ctx, f"{identity_name} training on last {len(train_dataset_subset)} samples.")
 
         train_dataset_subset_loader = DataLoader(train_dataset_subset, batch_size=batch_size, shuffle=True)
