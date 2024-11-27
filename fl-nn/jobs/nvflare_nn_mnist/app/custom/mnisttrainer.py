@@ -45,7 +45,7 @@ class MnistTrainer(Executor):
     def __init__(
         self,
         data_path="~/data",
-        lr=0.01,
+        lr=0.001,
         epochs=5,
         train_task_name=AppConstants.TASK_TRAIN,
         submit_model_task_name=AppConstants.TASK_SUBMIT_MODEL,
