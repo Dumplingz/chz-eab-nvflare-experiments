@@ -167,18 +167,30 @@ class MnistTrainer(Executor):
         train_dataset_size = len(train_dataset)
         train_dataset_subset = train_dataset_size // num_parties
         identity_name = fl_ctx.get_identity_name()
-        if identity_name == "site-1":
-            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset))
-            self.log_info(fl_ctx, f"{identity_name} training on first {len(train_dataset_subset)} samples.")
-        elif identity_name == "site-2":
-            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset, train_dataset_subset * 2))
-            self.log_info(fl_ctx, f"{identity_name} training on second {len(train_dataset_subset)} samples.")
-        elif identity_name == "site-3":
-            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset * 2, train_dataset_subset * 3))
-            self.log_info(fl_ctx, f"{identity_name} training on second {len(train_dataset_subset)} samples.")
+
+        site_n = identity_name.split("-")[-1]
+        if site_n.isdigit():
+            site_n = int(site_n)
         else:
-            train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset * 3, train_dataset_subset * 4))
-            self.log_info(fl_ctx, f"{identity_name} training on last {len(train_dataset_subset)} samples.")
+            self.log_info(fl_ctx, f"Invalid site number in identity name.")
+
+        train_data_range = range(train_dataset_subset * (site_n - 1), train_dataset_subset * site_n)
+        self.log_info(fl_ctx, f"{identity_name} training on first {len(train_dataset_subset)} samples.")
+
+        train_dataset_subset = torch.utils.data.Subset(train_dataset, train_data_range)
+
+        # if identity_name == "site-1":
+        #     train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset))
+        #     self.log_info(fl_ctx, f"{identity_name} training on first {len(train_dataset_subset)} samples.")
+        # elif identity_name == "site-2":
+        #     train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset, train_dataset_subset * 2))
+        #     self.log_info(fl_ctx, f"{identity_name} training on second {len(train_dataset_subset)} samples.")
+        # elif identity_name == "site-3":
+        #     train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset * 2, train_dataset_subset * 3))
+        #     self.log_info(fl_ctx, f"{identity_name} training on second {len(train_dataset_subset)} samples.")
+        # else:
+        #     train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset * 3, train_dataset_subset * 4))
+        #     self.log_info(fl_ctx, f"{identity_name} training on last {len(train_dataset_subset)} samples.")
 
         train_dataset_subset_loader = DataLoader(train_dataset_subset, batch_size=batch_size, shuffle=True)
         # Basic training
