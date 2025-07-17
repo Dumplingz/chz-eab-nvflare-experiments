@@ -24,6 +24,7 @@ def sample_cb(
     return True
 
 if __name__ == '__main__':
+    num_sites = 8
     num_trials = int(sys.argv[1])
 
     model = str(sys.argv[2])
@@ -91,7 +92,10 @@ if __name__ == '__main__':
     
     file = f"datasize_{model}_nn.csv"
 
-    sites = ["site-1", "site-2", "site-3", "site-4"]
+    sites = []
+    for i in range(num_sites):
+        sites.append(f"site-{i+1}")
+    # sites = ["site-1", "site-2", "site-3", "site-4"]
 
     combined_df = pd.DataFrame()
     for site in sites:
