@@ -175,9 +175,9 @@ class MnistTrainer(Executor):
             self.log_info(fl_ctx, f"Invalid site number in identity name.")
 
         train_data_range = range(train_dataset_subset * (site_n - 1), train_dataset_subset * site_n)
-        self.log_info(fl_ctx, f"{identity_name} training on first {len(train_dataset_subset)} samples.")
 
         train_dataset_subset = torch.utils.data.Subset(train_dataset, train_data_range)
+        self.log_info(fl_ctx, f"{identity_name} training on first {len(train_dataset_subset)} samples.")
 
         # if identity_name == "site-1":
         #     train_dataset_subset = torch.utils.data.Subset(train_dataset, range(train_dataset_subset))
