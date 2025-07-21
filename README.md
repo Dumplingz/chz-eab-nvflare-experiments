@@ -2,6 +2,8 @@
 
 This repository contains the experimental results in the paper "Running Functions on Pooled Data without Leakage: Comparing Solutions Over Scope, Trust, and Performance" for NVFlare on FashionMNIST and CIFAR datasets, along with the scripts used to run the experiments.
 
+Custom code for the experiments are in the `fl-nn` directory, under `fl-nn/jobs/nvflare_nn_[cifar or mnist]/app/custom`:
+
 ## Setup
 This repository was tested using Python 3.11 (switched to this version using pyenv) and NVFlare 2.5.2. Install the required packages using:
 
@@ -35,4 +37,4 @@ To quit the poc, run:
 nvflare poc stop
 ```
 
-The results will appear in the `data` directory.
+The results will appear in the `fl-nn/experiments/[cifar or mnist]` directory.
